@@ -14,7 +14,7 @@ background daemon or telemetry service.
 
 ## Highlights
 
-- Fixed CPU icon on the bar, tinted when CPU or memory pressure is high
+- Fixed chip icon on the bar, tinted when CPU or memory pressure is high
 - Expandable dashboard for CPU, RAM, temperature, load, and uptime
 - Platform sensor section on Apple Silicon (Asahi): every labelled SMC
   temperature and power rail, since no SoC die sensor exists there
@@ -57,8 +57,8 @@ omarchy restart shell
 | `R` while open | Refresh metrics now |
 | `B` while open | Open `btop` |
 
-The bar always shows the same CPU icon. Warning and critical colors follow
-the active Omarchy theme.
+The bar always shows the same chip icon, at the same size as the other bar
+icons. Warning and critical colors follow the active Omarchy theme.
 
 ## Metrics
 

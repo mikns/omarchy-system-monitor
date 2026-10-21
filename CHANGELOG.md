@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- The bar always shows a fixed CPU icon. Bar display modes, the setting that
+- The bar icon is a chip glyph sized like the display, network, and volume icons
+- The bar always shows a fixed icon. Bar display modes, the setting that
   selected them, and right-click cycling are gone
 - The dashboard no longer has the bar-mode button or the Open btop button.
   Middle-click and `B` still open btop

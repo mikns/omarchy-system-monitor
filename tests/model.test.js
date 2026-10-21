@@ -250,6 +250,9 @@ test("manifest describes a public bar widget with configurable thresholds", () =
 test("panel keeps a fixed bar icon and drops display cycling", () => {
   const qml = fs.readFileSync(path.join(root, "Panel.qml"), "utf8")
   assert.match(qml, /readonly property string heroGlyph:/)
+  const glyph = qml.match(/heroGlyph: "(.)"/)
+  assert.ok(glyph, "bar glyph should be a single character")
+  assert.equal(glyph[1].codePointAt(0), 0xec19)
   assert.match(qml, /BarIconButton \{[\s\S]*text: root\.heroGlyph/)
   assert.doesNotMatch(qml, /function cycleBarMode\(\)/)
   assert.doesNotMatch(qml, /function barLabel\(\)/)
