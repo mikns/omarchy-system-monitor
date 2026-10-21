@@ -38,9 +38,10 @@ Panel {
   readonly property bool warning: pressure >= warningThreshold || metrics.cpuTemperature >= 85 || metrics.gpuTemperature >= 85 || metrics.hottestPlatformTemp >= 85 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatWarnW) || metrics.fansManual
   readonly property bool critical: pressure >= criticalThreshold || metrics.cpuTemperature >= 95 || metrics.gpuTemperature >= 95 || metrics.hottestPlatformTemp >= 95 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatCriticalW)
 
-  // Fixed bar glyph. Codicon chip, whose ink at the bar icon size matches
-  // the display, network, and volume icons. The widget never swaps it.
-  readonly property string heroGlyph: ""
+  // Fixed bar glyph. A rectangular DIP chip, not the square CPU mark.
+  // At the shared bar icon size its ink is 13x13, in line with the display,
+  // network, and volume icons. The widget never swaps it.
+  readonly property string heroGlyph: ""
 
   // Package temperature only spans a useful band; drawing 57°C as 57% of a
   // meter makes a cold chip look half-loaded. Anchor the scale at 30°C.
