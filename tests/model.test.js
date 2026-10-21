@@ -252,7 +252,7 @@ test("panel keeps a fixed bar icon and drops display cycling", () => {
   assert.match(qml, /readonly property string heroGlyph:/)
   const glyph = qml.match(/heroGlyph: "(.)"/)
   assert.ok(glyph, "bar glyph should be a single character")
-  assert.equal(glyph[1].codePointAt(0), 0xe266)
+  assert.equal(glyph[1].codePointAt(0), 0xec19)
   assert.match(qml, /BarIconButton \{[\s\S]*text: root\.heroGlyph/)
   assert.doesNotMatch(qml, /function cycleBarMode\(\)/)
   assert.doesNotMatch(qml, /function barLabel\(\)/)

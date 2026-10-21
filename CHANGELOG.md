@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- The bar icon is a rectangular chip. Its ink matches the display, network, and volume icons
+- The bar icon is an outline chip at the normal bar icon size, with the same 12×12 ink as the display icon
 - The bar always shows a fixed icon. Bar display modes, the setting that
   selected them, and right-click cycling are gone
 - The dashboard no longer has the bar-mode button or the Open btop button.
