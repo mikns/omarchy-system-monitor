@@ -38,9 +38,11 @@ Panel {
   readonly property bool warning: pressure >= warningThreshold || metrics.cpuTemperature >= 85 || metrics.gpuTemperature >= 85 || metrics.hottestPlatformTemp >= 85 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatWarnW) || metrics.fansManual
   readonly property bool critical: pressure >= criticalThreshold || metrics.cpuTemperature >= 95 || metrics.gpuTemperature >= 95 || metrics.hottestPlatformTemp >= 95 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatCriticalW)
 
-  // Fixed bar glyph. Outline chip at the shared bar icon size. Its ink is
-  // 12x12, the same as the display icon. The widget never swaps it.
-  readonly property string heroGlyph: ""
+  // Material chip, the same family as the display and network icons.
+  // The glyph has more padding than those, so the bar draws it at 16/13
+  // of the shared icon size. The painted chip then matches the display
+  // icon. The widget never swaps it.
+  readonly property string heroGlyph: "󰘚"
 
   // Package temperature only spans a useful band; drawing 57°C as 57% of a
   // meter makes a cold chip look half-loaded. Anchor the scale at 30°C.
@@ -428,6 +430,7 @@ Panel {
     anchors.fill: parent
     bar: root.bar
     text: root.heroGlyph
+    fontSize: Math.round(Style.bar.iconFont * 16 / 13)
     active: root.warning || root.critical
     activeColor: root.critical ? root.urgent : root.warningColor
     tooltipText: root.tooltipText()
@@ -490,7 +493,7 @@ Panel {
                 text: root.heroGlyph
                 color: root.foreground
                 font.family: root.fontFamily
-                font.pixelSize: Style.font.display
+                font.pixelSize: Math.round(Style.font.display * 16 / 13)
               }
             }
 
