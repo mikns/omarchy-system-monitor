@@ -53,7 +53,6 @@ omarchy restart shell
 | Action | Result |
 | --- | --- |
 | Left-click | Open or close the dashboard |
-| Middle-click | Open `btop` |
 | `R` while open | Refresh metrics now |
 | `B` while open | Open `btop` |
 

@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 - The bar always shows a fixed icon. Bar display modes, the setting that
   selected them, and right-click cycling are gone
 - The dashboard no longer has the bar-mode button or the Open btop button.
-  Middle-click and `B` still open btop
+  `B` still opens btop
+- Hovering the bar icon no longer shows a summary popup. Middle-click does nothing
 - Plugin id is `mikns.system-monitor`
 
 ## 1.5.2 - 2026-09-17

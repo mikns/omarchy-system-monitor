@@ -161,15 +161,6 @@ Panel {
     return (metrics.cpuTemperature >= 0 ? metrics.cpuTemperature : metrics.hottestPlatformTemp) >= 95
   }
 
-  // Tooltip headline: the package sensor when there is one, then heatpipe
-  // watts, then the warmest exposed temperature.
-  function headlineTempText() {
-    if (metrics.cpuTemperature >= 0) return Math.round(metrics.cpuTemperature) + "°C"
-    if (metrics.heatpipeWatts >= 0) return "heat " + metrics.heatpipeWatts.toFixed(1) + " W"
-    if (metrics.hottestPlatformTemp >= 0) return "warmest " + Math.round(metrics.hottestPlatformTemp) + "°C"
-    return "—"
-  }
-
   function temperatureSourceLabel() {
     var sensor = metrics.hottestPlatformSensor
     if (!sensor || !isFinite(sensor.value) || sensor.value < 0) return ""
@@ -335,8 +326,7 @@ Panel {
 
   // Auto-discovered mount paths. These render into CapacityRow's label, which
   // pins Text.PlainText, so the raw path is passed through the same way the
-  // section heading takes its title; escapeMarkup stays reserved for the
-  // shared bar tooltip, whose formatting this plugin does not control.
+  // section heading takes its title.
   // Normally the last path segment (/mnt/data -> "data"); when two disks share
   // a basename the colliding ones show the full path.
   function mountLabel(mount) {
@@ -355,37 +345,6 @@ Panel {
     if (value >= crit) return root.urgent
     if (value >= warn) return root.warningColor
     return root.accent
-  }
-
-  function tooltipText() {
-    // The bar button's shared tooltip only accepts a string and renders it with
-    // Text.AutoText, so neutralize markup before handing it configuration.
-    var interfaceName = Model.escapeMarkup(metrics.activeInterface)
-    var lines = [
-      "CPU " + percent(metrics.cpuPercent) + " · RAM " + percent(metrics.memoryPercent) + " · " + headlineTempText()
-    ]
-    // Skipped entirely on machines without a utilisation-reporting GPU, so
-    // the tooltip never grows a row of em dashes.
-    if (hasGpu) {
-      var gpu = []
-      if (hasGpuUsage) gpu.push("GPU " + percent(metrics.gpuPercent))
-      if (hasGpuTemperature) gpu.push((hasGpuUsage ? "" : "GPU ") + gpuTemperatureText())
-      if (hasGpuVram) gpu.push("VRAM " + gpuVramDetail())
-      lines.push(gpu.join(" · "))
-    }
-    if (metrics.fans.length > 0) {
-      var speeds = []
-      for (var fanIndex = 0; fanIndex < metrics.fans.length; fanIndex++) {
-        var fan = metrics.fans[fanIndex]
-        speeds.push(isFinite(fan.rpm) && fan.rpm >= 0 ? Math.round(fan.rpm) + " RPM" : "—")
-      }
-      lines.push("Fans " + speeds.join(" / ") + (metrics.fansManual ? " · " + metrics.fanMode : " · SMC"))
-    }
-    lines.push("Load " + loadText() + (interfaceName !== "" ? " · " + interfaceName : ""))
-    lines.push("Net ↓ " + formatRate(metrics.networkDownBps) + " ↑ " + formatRate(metrics.networkUpBps))
-    lines.push("Disk R " + formatRate(metrics.diskReadBps) + " · W " + formatRate(metrics.diskWriteBps))
-    lines.push("Middle-click opens btop")
-    return lines.join("\n")
   }
 
   function launchBtop() {
@@ -421,8 +380,8 @@ Panel {
   }
 
   function barPressed(buttonCode) {
-    if (buttonCode === Qt.MiddleButton) launchBtop()
-    else toggle()
+    if (buttonCode === Qt.MiddleButton) return
+    toggle()
   }
 
   BarIconButton {
@@ -433,7 +392,7 @@ Panel {
     fontSize: Math.round(Style.bar.iconFont * 16 / 13)
     active: root.warning || root.critical
     activeColor: root.critical ? root.urgent : root.warningColor
-    tooltipText: root.tooltipText()
+    tooltipText: ""
     onPressed: function(buttonCode) { root.barPressed(buttonCode) }
   }
 

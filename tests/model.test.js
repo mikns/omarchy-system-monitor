@@ -58,7 +58,7 @@ test("configuration-derived labels cannot become rich text", () => {
   )
 
   const qml = fs.readFileSync(path.join(root, "Panel.qml"), "utf8")
-  assert.match(qml, /Model\.escapeMarkup\(metrics\.activeInterface\)/)
+  assert.doesNotMatch(qml, /function tooltipText\(\)/)
   assert.match(qml, /id: headingText[\s\S]{0,160}textFormat: Text\.PlainText/)
   assert.doesNotMatch(qml, /" · " \+ metrics\.activeInterface/)
 })
@@ -261,6 +261,9 @@ test("panel keeps a fixed bar icon and drops display cycling", () => {
   assert.doesNotMatch(qml, /WidgetButton/)
   assert.doesNotMatch(qml, /Open btop/)
   assert.doesNotMatch(qml, /component ActionButton/)
+  assert.doesNotMatch(qml, /function tooltipText\(\)/)
+  assert.match(qml, /tooltipText: ""/)
+  assert.doesNotMatch(qml, /MiddleButton\) launchBtop/)
   assert.match(qml, /function launchBtop\(\)/)
   assert.match(qml, /metrics\.hostname !== "" \? metrics\.hostname : "System Monitor"/)
   assert.doesNotMatch(qml, /\/home\//)
