@@ -9,8 +9,8 @@ import "Metrics.js" as Model
 Panel {
   id: root
 
-  moduleName: "harshith.system-monitor"
-  ipcTarget: "harshith.system-monitor"
+  moduleName: "mikns.system-monitor"
+  ipcTarget: "mikns.system-monitor"
   manageIpc: false
 
   readonly property color foreground: bar ? bar.barForeground : Color.foreground
@@ -28,10 +28,6 @@ Panel {
   readonly property color warningColor: Qt.tint(accent, Qt.rgba(urgent.r, urgent.g, urgent.b, 0.6))
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
 
-  readonly property string barMode: String(setting("barMode", "Adaptive"))
-  // Icon mode keeps the bar quiet: the plugin glyph alone, still tinted at
-  // warning/critical pressure, tooltip and dashboard unchanged.
-  readonly property bool iconOnly: barMode === "Icon"
   readonly property real warningThreshold: Math.min(Number(setting("warningPercent", 80)), criticalThreshold - 1)
   readonly property real criticalThreshold: Math.max(Number(setting("criticalPercent", 95)), 61)
   readonly property real pressure: Math.max(metrics.cpuPercent, metrics.memoryPercent)
@@ -42,6 +38,7 @@ Panel {
   readonly property bool warning: pressure >= warningThreshold || metrics.cpuTemperature >= 85 || metrics.gpuTemperature >= 85 || metrics.hottestPlatformTemp >= 85 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatWarnW) || metrics.fansManual
   readonly property bool critical: pressure >= criticalThreshold || metrics.cpuTemperature >= 95 || metrics.gpuTemperature >= 95 || metrics.hottestPlatformTemp >= 95 || (metrics.cpuTemperature < 0 && metrics.heatpipeWatts >= heatCriticalW)
 
+  // Fixed bar glyph. Nerd Font cpu icon; the widget never swaps it.
   readonly property string heroGlyph: "󰻠"
 
   // Package temperature only spans a useful band; drawing 57°C as 57% of a
@@ -49,42 +46,8 @@ Panel {
   readonly property real temperatureFloor: 30
   readonly property real temperatureCeiling: 100
 
-  // Keyboard/mouse cursor over the action row — the panel's only actionable
-  // controls. Visuals derive from `hasCursor`, never from containsMouse, so
-  // one highlight shows at a time no matter which input moved it.
-  property bool cursorActive: false
-  property int selectedIndex: 0
-  readonly property int actionCount: 2
-
   function percent(value) {
     return isFinite(value) && value >= 0 ? Math.round(value) + "%" : "—"
-  }
-
-  // Fixed-width percentage for the bar label. Without the pad the widget
-  // resizes as values cross 10 and 100, shoving every widget beside it.
-  function padPercent(value) {
-    if (!isFinite(value) || value < 0) return "  —"
-    var text = Math.round(value) + "%"
-    while (text.length < 4) text = " " + text
-    return text
-  }
-
-  // Fixed-width thermal bar value: watts on Asahi (heatpipe), °C elsewhere.
-  function padThermalBarValue() {
-    if (thermalTileIsWatts()) {
-      var text = metrics.heatpipeWatts.toFixed(1) + "W"
-      while (text.length < 5) text = " " + text
-      return text
-    }
-    var t = metrics.cpuTemperature >= 0 ? metrics.cpuTemperature : metrics.hottestPlatformTemp
-    if (!isFinite(t) || t < 0) return "  —"
-    var deg = Math.round(t) + "°"
-    while (deg.length < 4) deg = " " + deg
-    return deg
-  }
-
-  function thermalBarName() {
-    return thermalTileIsWatts() ? "HEAT" : "TEMP"
   }
 
   function formatBytes(value) {
@@ -391,40 +354,8 @@ Panel {
     return root.accent
   }
 
-  function modeLabel() {
-    return barMode === "Memory" ? "RAM" : barMode
-  }
-
-  // Every horizontal form is a fixed character count, so the widget keeps its
-  // width as values cross 10 and 100 instead of shoving its neighbours.
-  function barLabel() {
-    // A vertical bar has room for the number and nothing else.
-    if (button.vertical) {
-      if (barMode === "Temp") {
-        if (thermalTileIsWatts()) return metrics.heatpipeWatts.toFixed(0)
-        var tv = metrics.cpuTemperature >= 0 ? metrics.cpuTemperature : metrics.hottestPlatformTemp
-        return isFinite(tv) && tv >= 0 ? String(Math.round(tv)) : "—"
-      }
-      var value = barMode === "CPU" ? metrics.cpuPercent
-        : barMode === "Memory" ? metrics.memoryPercent
-        : barMode === "GPU" ? metrics.gpuPercent
-        : Math.max(metrics.cpuPercent, metrics.memoryPercent)
-      return isFinite(value) && value >= 0 ? String(Math.round(value)) : "—"
-    }
-    if (barMode === "CPU") return "CPU " + padPercent(metrics.cpuPercent)
-    if (barMode === "Memory") return "RAM " + padPercent(metrics.memoryPercent)
-    if (barMode === "GPU") return "GPU " + padPercent(metrics.gpuPercent)
-    if (barMode === "Temp") return thermalBarName() + " " + padThermalBarValue()
-    if (barMode === "Both")
-      return "C " + padPercent(metrics.cpuPercent) + " M " + padPercent(metrics.memoryPercent)
-    // Adaptive: CPU vs RAM pressure only — never heat/temp (explicit Temp mode).
-    return metrics.cpuPercent >= metrics.memoryPercent
-      ? "CPU " + padPercent(metrics.cpuPercent)
-      : "RAM " + padPercent(metrics.memoryPercent)
-  }
-
   function tooltipText() {
-    // WidgetButton's shared tooltip only accepts a string and renders it with
+    // The bar button's shared tooltip only accepts a string and renders it with
     // Text.AutoText, so neutralize markup before handing it configuration.
     var interfaceName = Model.escapeMarkup(metrics.activeInterface)
     var lines = [
@@ -450,19 +381,8 @@ Panel {
     lines.push("Load " + loadText() + (interfaceName !== "" ? " · " + interfaceName : ""))
     lines.push("Net ↓ " + formatRate(metrics.networkDownBps) + " ↑ " + formatRate(metrics.networkUpBps))
     lines.push("Disk R " + formatRate(metrics.diskReadBps) + " · W " + formatRate(metrics.diskWriteBps))
-    lines.push("Right-click cycles display · Middle-click opens btop")
+    lines.push("Middle-click opens btop")
     return lines.join("\n")
-  }
-
-  function cycleBarMode() {
-    // Temp is opt-in via cycle / settings — never selected by Adaptive.
-    var modes = hasGpuUsage
-      ? ["Adaptive", "CPU", "Memory", "GPU", "Temp", "Both", "Icon"]
-      : ["Adaptive", "CPU", "Memory", "Temp", "Both", "Icon"]
-    var index = modes.indexOf(barMode)
-    var next = modes[(index + 1) % modes.length]
-    settings = Object.assign({}, settings, { barMode: next })
-    if (bar && bar.shell) bar.shell.updateEntryInline(moduleName, settings)
   }
 
   function launchBtop() {
@@ -470,38 +390,12 @@ Panel {
     close()
   }
 
-  function moveCursor(delta) {
-    if (delta === 0) return
-    selectedIndex = Math.max(0, Math.min(actionCount - 1, selectedIndex + delta))
-  }
-
-  function activateCursor() {
-    if (selectedIndex === 0) cycleBarMode()
-    else launchBtop()
-  }
-
-  function ensureCursorVisible(item) {
-    if (!item || !scrollArea) return
-    var flick = scrollArea.contentItem
-    if (!flick || flick.contentY === undefined) return
-    var point = item.mapToItem(flick.contentItem || flick, 0, 0)
-    var top = point.y
-    var bottom = top + (item.height || 0)
-    var viewTop = flick.contentY
-    var viewBottom = viewTop + flick.height
-    var margin = Style.space(6)
-    if (top < viewTop + margin) flick.contentY = Math.max(0, top - margin)
-    else if (bottom > viewBottom - margin) flick.contentY = bottom + margin - flick.height
-  }
-
   visible: true
-  implicitWidth: iconOnly ? iconButton.implicitWidth : button.implicitWidth
-  implicitHeight: iconOnly ? iconButton.implicitHeight : button.implicitHeight
+  implicitWidth: iconButton.implicitWidth
+  implicitHeight: iconButton.implicitHeight
 
   onOpenedChanged: {
     if (opened) {
-      cursorActive = false
-      selectedIndex = 0
       metrics.sample()
       Qt.callLater(function() { keyCatcher.forceActiveFocus() })
     }
@@ -524,29 +418,13 @@ Panel {
   }
 
   function barPressed(buttonCode) {
-    if (buttonCode === Qt.RightButton) cycleBarMode()
-    else if (buttonCode === Qt.MiddleButton) launchBtop()
+    if (buttonCode === Qt.MiddleButton) launchBtop()
     else toggle()
-  }
-
-  WidgetButton {
-    id: button
-    anchors.fill: parent
-    visible: !root.iconOnly
-    bar: root.bar
-    text: root.barLabel()
-    fontSize: Style.font.caption
-    horizontalMargin: 6
-    active: root.warning || root.critical
-    activeColor: root.critical ? root.urgent : root.warningColor
-    tooltipText: root.tooltipText()
-    onPressed: function(buttonCode) { root.barPressed(buttonCode) }
   }
 
   BarIconButton {
     id: iconButton
     anchors.fill: parent
-    visible: root.iconOnly
     bar: root.bar
     text: root.heroGlyph
     active: root.warning || root.critical
@@ -557,7 +435,7 @@ Panel {
 
   KeyboardPanel {
     id: panel
-    anchorItem: root.iconOnly ? iconButton : button
+    anchorItem: iconButton
     owner: root
     bar: root.bar
     open: root.opened
@@ -575,11 +453,6 @@ Panel {
       anchors.fill: parent
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
-      onMoveRequested: function(dx, dy) {
-        if (!root.cursorActive) { root.cursorActive = true; return }
-        root.moveCursor(dx !== 0 ? dx : dy)
-      }
-      onActivateRequested: if (root.cursorActive) root.activateCursor()
       onTextKey: function(text) {
         if (text === "r" || text === "R") metrics.sample()
         else if (text === "b" || text === "B") root.launchBtop()
@@ -1191,32 +1064,6 @@ Panel {
               }
             }
           }
-
-          PanelSeparator { foreground: root.foreground }
-
-          // ---------- Actions ----------
-          Row {
-            width: parent.width
-            spacing: Style.space(8)
-
-            ActionButton {
-              width: (parent.width - parent.spacing) / 2
-              index: 0
-              iconText: "󰑖"
-              text: "Bar · " + root.modeLabel()
-              tooltipText: "Cycle bar display — also right-click the widget"
-              onClicked: root.cycleBarMode()
-            }
-
-            ActionButton {
-              width: (parent.width - parent.spacing) / 2
-              index: 1
-              iconText: "󰆍"
-              text: "Open btop"
-              tooltipText: "Open btop (B)"
-              onClicked: root.launchBtop()
-            }
-          }
         }
       }
     }
@@ -1583,24 +1430,6 @@ Panel {
       width: parent.width
       value: capacity.percentValue
       fillColor: root.levelColor(capacity.percentValue, root.warningThreshold, root.criticalThreshold)
-    }
-  }
-
-  component ActionButton: Button {
-    id: actionButton
-    property int index: -1
-
-    bordered: true
-    foreground: root.foreground
-    fontFamily: root.fontFamily
-    fontSize: Style.font.bodySmall
-    iconSize: Style.font.icon
-    hasCursor: root.cursorActive && root.selectedIndex === actionButton.index
-    onHasCursorChanged: if (hasCursor) root.ensureCursorVisible(actionButton)
-    onHovered: function(isHovered) {
-      if (!isHovered) return
-      root.cursorActive = true
-      root.selectedIndex = actionButton.index
     }
   }
 }

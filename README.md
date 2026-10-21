@@ -1,7 +1,7 @@
 # System Monitor for Omarchy
 
 [![Omarchy 4.0+](https://img.shields.io/badge/Omarchy-4.0%2B-c6aa75?style=flat-square)](https://omarchy.org/manual/shell-plugins/)
-[![Validate](https://img.shields.io/github/actions/workflow/status/Harshith292002/omarchy-system-monitor/validate.yml?branch=main&style=flat-square&label=validate)](https://github.com/Harshith292002/omarchy-system-monitor/actions/workflows/validate.yml)
+[![Validate](https://img.shields.io/github/actions/workflow/status/mikns/omarchy-system-monitor/validate.yml?branch=main&style=flat-square&label=validate)](https://github.com/mikns/omarchy-system-monitor/actions/workflows/validate.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-6aa6b2?style=flat-square)](LICENSE)
 
 A low-overhead dashboard for the Omarchy bar. System Monitor reads Linux
@@ -14,15 +14,13 @@ background daemon or telemetry service.
 
 ## Highlights
 
-- Adaptive bar widget that can show CPU, memory, GPU, or both
+- Fixed CPU icon on the bar, tinted when CPU or memory pressure is high
 - Expandable dashboard for CPU, RAM, temperature, load, and uptime
 - Platform sensor section on Apple Silicon (Asahi): every labelled SMC
   temperature and power rail, since no SoC die sensor exists there
 - Fan control on Apple Silicon (optional, via the `asahi-fanctl` helper):
   live RPMs, SMC/Auto plus Quiet, Boost, Full, and custom heatpipe-power
   curve presets
-- Bar `Temp` mode: heatpipe watts on Asahi (`HEAT`), package °C elsewhere
-  (`TEMP`); never selected by Adaptive
 - GPU utilization, temperature, and VRAM, with per-sensor vendor fallbacks
 - Two-minute CPU, memory, and GPU history with per-core utilization
 - Mirrored network throughput history on a shared scale
@@ -40,7 +38,7 @@ background daemon or telemetry service.
 System Monitor requires Omarchy 4.0 or newer with shell plugin support.
 
 ```sh
-omarchy plugin add https://github.com/Harshith292002/omarchy-system-monitor.git --enable
+omarchy plugin add https://github.com/mikns/omarchy-system-monitor.git --enable
 ```
 
 The shell normally picks up the plugin immediately. If the widget does not
@@ -55,13 +53,12 @@ omarchy restart shell
 | Action | Result |
 | --- | --- |
 | Left-click | Open or close the dashboard |
-| Right-click | Cycle `Adaptive` → `CPU` → `Memory` → `Both` → `Icon` (`GPU` is added to the cycle automatically when a card publishes a utilization counter) |
 | Middle-click | Open `btop` |
 | `R` while open | Refresh metrics now |
 | `B` while open | Open `btop` |
 
-Adaptive mode displays whichever of CPU or memory is currently under more
-pressure. Warning and critical colors follow the active Omarchy theme.
+The bar always shows the same CPU icon. Warning and critical colors follow
+the active Omarchy theme.
 
 ## Metrics
 
@@ -147,9 +144,9 @@ watts on Asahi, package temperature elsewhere) over a two-minute window.
 On Apple Silicon under Asahi, **heatpipe power** is the SMC’s estimate of
 how many watts the SoC is dumping through its heatpipes. It is **not** die
 temperature (°C) and **not** chassis skin temperature — those die sensors
-are not exposed in sysfs. The HEAT tile and optional bar `Temp` mode show
-this value because it is the best available proxy for SoC thermal load and
-the same input the fan curves follow.
+are not exposed in sysfs. The HEAT tile shows this value because it is the
+best available proxy for SoC thermal load and the same input the fan curves
+follow.
 
 Why heatpipe power and not CPU temperature: Asahi does not expose SoC die
 temperatures — they live in the PMU. The SMC's heatpipe power reading is an
@@ -174,7 +171,6 @@ Open **Setup → Plugins → System Monitor** to change these values:
 
 | Setting | Default | Range or behavior |
 | --- | ---: | --- |
-| Bar display | Adaptive | `Adaptive`, `CPU`, `Memory`, `GPU`, `Both`, or `Icon` (glyph only; still tints at warning/critical) |
 | Closed refresh | 5 s | 2–60 seconds |
 | Open refresh | 2 s | 1–10 seconds |
 | Warning threshold | 80% | 50–95% |
@@ -184,13 +180,13 @@ Open **Setup → Plugins → System Monitor** to change these values:
 ## Update
 
 ```sh
-omarchy plugin update harshith.system-monitor --yes
+omarchy plugin update mikns.system-monitor --yes
 ```
 
 ## Remove
 
 ```sh
-omarchy plugin remove harshith.system-monitor --yes
+omarchy plugin remove mikns.system-monitor --yes
 ```
 
 Removing the plugin removes its widget and checkout. It does not change system

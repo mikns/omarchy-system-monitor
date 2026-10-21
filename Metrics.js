@@ -7,7 +7,7 @@ function clamp(value, minimum, maximum) {
   return Math.max(minimum, Math.min(maximum, value))
 }
 
-// WidgetButton forwards tooltip strings to the shell's shared Text item,
+// The bar button forwards tooltip strings to the shell's shared Text item,
 // which currently uses Qt's automatic rich-text detection. Escape markup at
 // that boundary so configuration-derived labels cannot become HTML there.
 function escapeMarkup(value) {
